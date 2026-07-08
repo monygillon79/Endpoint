@@ -1,0 +1,103 @@
+<?xml version="1.0" encoding="utf-8"?> 
+<!-- Template: replace placeholder domains, OU paths, app IDs, and branding values before use. -->
+<UIpp Title="Organization Name"  Icon="UI++.ico" DialogIcons="Yes">
+
+<Software>
+	<Application Id="OSD_ExampleApp1" Label="Example App 1" Name="OSD_ExampleApp1"/>
+	<Application Id="OSD_ExampleApp2" Label="Example App 2" Name="Example App 2"/>
+ </Software>
+
+
+ <Actions>
+
+	 <Action Type="DefaultValues" ValueTypes="OS,VM,Asset" />
+	 <Action Type="WMIRead" Variable="ComputerName" Namespace="root\cimv2" Class="Win32_ComputerSystem" Property="Name"/>
+	 <Action Type="WMIRead" Variable="DellServiceTag" Namespace="root\cimv2" Class="Win32_SystemEnclosure" Property="SMBIOSAssetTag"/>
+	 <Action Type="WMIRead" Namespace="root\cimv2" Class="Win32_ComputerSystem" Property="model" Variable="csmodel" />
+	 
+	 <Action Type="Info" Name="myInfo" Title="Windows Deployment" Image="Welcome.png" ShowCancel="True" TimeoutAction="Cancel" TimeoutMsg="Shutdown"> 
+	 <![CDATA[
+	 
+ <b>Authorized Users Only </b>
+	 
+	 You are about to wipe a <OrganizationName> computer.<b>STOP IMMEDIATELY </b>
+	 if you are not an authorized user!!!
+
+	Example Organization IT Department | <Organization Address> 	 ]]> </Action>
+	 
+	 <Action Type="Input" Name="ServiceTag" Title="ServiceTag"> 
+		<TextInput Prompt="Service Tag" Hint="Please enter the Service Tag." Question="Please enter a service tag." RegEx=".{5}" Variable="DellServiceTag" />
+	 </Action>	 
+	 
+	 <Action Type="Preflight" Title="Preflight checks" ShowBack="True">
+		<Check Text="Not on battery" CheckCondition='"%XOnBattery%" = "False"' />
+		<Check Text="Minimum memory > 2GB" CheckCondition='%XHWMemory% >= 2048' />
+		<Check Text="CPU Supports Windows 8+" CheckCondition='%XCPUPAE% AND %XCPUNX% AND %XCPUSSE2% = True' />
+	</Action>	
+
+	 <Action Type="Input" Name="LocationChoice" Title="System Location" ShowBack="True" >
+		<ChoiceInput Variable="MyLocation" Question="Please choose a final location for this computer" Required="True" >
+		  <Choice Option="DEPT1 - Department 1" Value="CAO"/>
+		  <Choice Option="DEPT2 - Department 2" Value="CCO"/>
+		  <Choice Option="DEPT3 - Department 3" Value="CD"/>
+		  <Choice Option="DEPT4 - Department 4" Value="CMO" />
+		  <Choice Option="DEPT5 - Department 5" Value="COU" />
+		  <Choice Option="DEPT6 - Department 6" Value="DPW" />
+		  <Choice Option="DEPT7 - Department 7" Value="EOC" />
+		  <Choice Option="DEPT8 - Department 8" Value="FD"/>
+		  <Choice Option="DEPT9 - Department 9" Value="FDM" />
+		  <Choice Option="DEPT10 - Department 10" Value="FIN" />
+		  <Choice Option="DEPT11 - Department 11" Value="HR" />
+		  <Choice Option="IT - Information Technology" Value="IT" />
+		  <Choice Option="DEPT12 - Department 12" Value="LIB" />
+		  <Choice Option="DEPT13 - Department 13" Value="PD" />
+		  <Choice Option="DEPT14 - Department 14" Value="PDC" />
+		  <Choice Option="DEPT15 - Department 15" Value="PDM" />
+		  <Choice Option="DEPT16 - Department 16" Value="PRK" />
+		  <Choice Option="DEPT17 - Department 17" Value="STR" />
+		  <Choice Option="DEPT18 - Department 18" Value="SVA" />
+		  <Choice Option="DEPT19 - Department 19" Value="SVP" />
+		  <Choice Option="VPC - Virtual PC" Value="VPC" />
+		  <Choice Option="DEPT20 - Department 20" Value="WTR" />
+		</ChoiceInput>
+	 </Action>
+	 
+	<Action Type="Input" Name="ClientSetupInput" Title="Operating System" ShowBack="True">
+		<ChoiceInput Variable="ZZBuildType" Question="Please select the build type for this system" Required="True">
+		<Choice Option="Windows 11 Enterprise" Value="Win11Ent" />
+		<Choice Option="Windows 11 LTSC" Value="Win11LTSC" />
+		<Choice Option="Windows 10 Enterprise" Value="Win10Ent" />
+		</ChoiceInput>
+	</Action>
+
+    <Action Type="AppTree" Title="Please choose your software" ShowBack="True" Default="false" ApplicationVariableBase="XApplicationsA" Size="Tall">
+      <SoftwareSets >
+        <Set Name="Default">
+		  <SoftwareGroup Id="A977187D-E1FA-4A85-8239-2F96686F5EE2" Label="Communication">
+              <SoftwareRef Id="OSD_ExampleApp1" />
+          </SoftwareGroup>
+		  <SoftwareGroup Id="9f4aa591-651b-4e15-83bc-8229248ec1d4" Label="Adobe">
+			  <SoftwareRef Id="OSD_ExampleApp2" />
+          </SoftwareGroup>
+        </Set>
+      </SoftwareSets>
+    </Action>
+	
+	<Action Type="TSVar" Name="OSDBuildType" >"%ZZBuildType%"</Action>
+
+	<Action Type="TSVar" Name="MACHINEOBJECTOU" >LDAP://OU=Workstations,OU=%MyLocation%,OU=DEPTS,DC=corp,DC=example,DC=local</Action>
+	<Action Type="TSVar" Name="OSDComputerName">UCase("%MyLocation%%DellServiceTag%")</Action>
+	
+	
+	<Action Type="Info" Title="Summary" Name="SystemName" ShowBack="True" ShowCancel="True"> 
+	<![CDATA[The name of this system will be <b>%MyLocation%%DellServiceTag%</b>.
+	
+	It will be placed in the OU at <b>%MACHINEOBJECTOU%</b>.
+	
+	Operating System <b>%ZZBuildType%</b>.
+	
+	Model  <b>%csmodel%</b>]]> 
+	</Action>
+	 
+ </Actions>
+ </UIpp>
