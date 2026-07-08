@@ -1,0 +1,796 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>DocForge — Output Mockups</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/mermaid/10.9.1/mermaid.min.js"></script>
+<style>
+  :root {
+    --bg: #0b1120;
+    --panel: #0f172a;
+    --panel-2: #131c31;
+    --border: #1e293b;
+    --border-lt: #27334a;
+    --text: #cbd5e1;
+    --text-dim: #7c8aa5;
+    --head: #f1f5f9;
+    --code-bg: #0a0f1c;
+    --code-fg: #93c5fd;
+    --accent-net: #0ea5e9;
+    --accent-ad:  #8b5cf6;
+    --accent-dr:  #ef4444;
+    --accent-ob:  #10b981;
+    --accent-sec: #f59e0b;
+    --accent-gpo: #6366f1;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: "Segoe UI", system-ui, -apple-system, sans-serif;
+    font-size: 15px;
+    line-height: 1.65;
+  }
+  /* ── App chrome ─────────────────────────────── */
+  .topbar {
+    display: flex; align-items: center; gap: 14px;
+    padding: 14px 24px;
+    border-bottom: 1px solid var(--border);
+    background: var(--panel);
+    position: sticky; top: 0; z-index: 50;
+  }
+  .logo {
+    font-weight: 700; font-size: 17px; color: var(--head);
+    letter-spacing: 0.3px;
+  }
+  .logo span { color: #38bdf8; }
+  .topbar .tag {
+    font-size: 11px; color: var(--text-dim);
+    border: 1px solid var(--border-lt); border-radius: 999px;
+    padding: 3px 10px; text-transform: uppercase; letter-spacing: 1px;
+  }
+  .topbar .env {
+    margin-left: auto; font-size: 12.5px; color: var(--text-dim);
+    font-family: Consolas, monospace;
+  }
+  .topbar .env b { color: #86efac; font-weight: 600; }
+
+  .layout { display: flex; min-height: calc(100vh - 57px); }
+
+  /* ── Doc type rail ──────────────────────────── */
+  .rail {
+    width: 268px; flex-shrink: 0;
+    border-right: 1px solid var(--border);
+    background: var(--panel);
+    padding: 18px 12px;
+  }
+  .rail h4 {
+    font-size: 11px; letter-spacing: 1.4px; text-transform: uppercase;
+    color: var(--text-dim); margin: 4px 8px 12px;
+    font-weight: 600;
+  }
+  .doc-btn {
+    display: flex; align-items: center; gap: 11px;
+    width: 100%; text-align: left;
+    background: none; border: 1px solid transparent; border-radius: 10px;
+    padding: 11px 12px; margin-bottom: 5px;
+    color: var(--text); cursor: pointer;
+    font-size: 13.5px; font-family: inherit;
+    transition: background .15s, border-color .15s;
+  }
+  .doc-btn:hover { background: var(--panel-2); }
+  .doc-btn.active {
+    background: var(--panel-2);
+    border-color: var(--border-lt);
+  }
+  .doc-btn .dot {
+    width: 9px; height: 9px; border-radius: 3px; flex-shrink: 0;
+  }
+  .doc-btn.active .lbl { color: var(--head); font-weight: 600; }
+  .rail .note {
+    margin: 22px 8px 0; font-size: 12px; color: var(--text-dim);
+    line-height: 1.55; border-top: 1px solid var(--border);
+    padding-top: 16px;
+  }
+
+  /* ── Document viewer ────────────────────────── */
+  .viewer { flex: 1; min-width: 0; }
+  .doc-head {
+    display: flex; align-items: center; gap: 14px;
+    padding: 16px 40px;
+    border-bottom: 1px solid var(--border);
+    background: linear-gradient(180deg, var(--panel) 0%, var(--bg) 100%);
+    position: sticky; top: 57px; z-index: 40;
+  }
+  .doc-head .chip {
+    font-size: 11px; font-weight: 700; letter-spacing: 1px;
+    text-transform: uppercase;
+    padding: 4px 11px; border-radius: 999px;
+  }
+  .doc-head .fname {
+    font-family: Consolas, monospace; font-size: 13px; color: var(--text-dim);
+  }
+  .doc-head .actions { margin-left: auto; display: flex; gap: 8px; }
+  .doc-head .btn {
+    font-size: 12.5px; padding: 7px 15px; border-radius: 8px;
+    border: 1px solid var(--border-lt); background: var(--panel-2);
+    color: var(--text); cursor: default; font-family: inherit;
+  }
+  .doc-head .btn.primary {
+    background: #1d4ed8; border-color: #2563eb; color: #fff; font-weight: 600;
+  }
+
+  .doc { display: none; max-width: 880px; margin: 0 auto; padding: 44px 40px 90px; }
+  .doc.show { display: block; }
+
+  /* ── Rendered markdown look ─────────────────── */
+  .doc .doc-title {
+    font-size: 30px; font-weight: 700; color: var(--head);
+    line-height: 1.25; margin-bottom: 6px; letter-spacing: -0.3px;
+  }
+  .doc .doc-meta {
+    font-size: 13px; color: var(--text-dim); margin-bottom: 34px;
+    padding-bottom: 22px; border-bottom: 1px solid var(--border);
+    font-family: Consolas, monospace;
+  }
+  .doc h2 {
+    font-size: 21px; color: var(--head); font-weight: 650;
+    margin: 40px 0 14px; padding-bottom: 8px;
+    border-bottom: 1px solid var(--border);
+  }
+  .doc h2 .hn { color: var(--text-dim); font-weight: 400; margin-right: 8px; font-size: 17px; }
+  .doc h3 {
+    font-size: 16.5px; color: #e2e8f0; font-weight: 600; margin: 26px 0 10px;
+  }
+  .doc p { margin-bottom: 13px; }
+  .doc ul, .doc ol { margin: 0 0 15px 24px; }
+  .doc li { margin-bottom: 5px; }
+  .doc strong { color: var(--head); font-weight: 600; }
+  .doc code {
+    background: var(--border); color: var(--code-fg);
+    padding: 2px 6px; border-radius: 4px;
+    font-size: 0.86em; font-family: Consolas, "Cascadia Code", monospace;
+  }
+  .doc pre {
+    background: var(--code-bg); border: 1px solid var(--border);
+    border-radius: 8px; padding: 16px 18px; overflow-x: auto;
+    margin-bottom: 18px;
+  }
+  .doc pre code {
+    background: none; padding: 0; color: #e2e8f0; font-size: 13px; line-height: 1.55;
+  }
+  .doc table {
+    width: 100%; border-collapse: collapse; margin: 6px 0 22px;
+    font-size: 13.5px;
+  }
+  .doc th {
+    text-align: left; color: var(--head); font-weight: 600;
+    background: var(--panel-2); padding: 9px 13px;
+    border: 1px solid var(--border);
+  }
+  .doc td { padding: 8px 13px; border: 1px solid var(--border); vertical-align: top; }
+  .doc tr:nth-child(even) td { background: rgba(30,41,59,.28); }
+  .doc blockquote {
+    border-left: 3px solid var(--border-lt); padding: 2px 0 2px 16px;
+    color: var(--text-dim); margin: 0 0 15px; font-style: italic;
+  }
+
+  /* Severity + status badges */
+  .sev {
+    display: inline-block; font-size: 11px; font-weight: 700;
+    letter-spacing: .6px; padding: 2px 9px; border-radius: 999px;
+    text-transform: uppercase;
+  }
+  .sev.crit { background: rgba(239,68,68,.16); color: #f87171; border: 1px solid rgba(239,68,68,.4); }
+  .sev.high { background: rgba(249,115,22,.14); color: #fb923c; border: 1px solid rgba(249,115,22,.4); }
+  .sev.med  { background: rgba(245,158,11,.13); color: #fbbf24; border: 1px solid rgba(245,158,11,.4); }
+  .sev.low  { background: rgba(16,185,129,.12); color: #34d399; border: 1px solid rgba(16,185,129,.35); }
+  .sev.info { background: rgba(56,189,248,.12); color: #38bdf8; border: 1px solid rgba(56,189,248,.35); }
+
+  .mermaid-wrap {
+    background: var(--code-bg); border: 1px solid var(--border);
+    border-radius: 10px; padding: 24px; margin: 8px 0 22px;
+    display: flex; justify-content: center; overflow-x: auto;
+  }
+  .mermaid { min-width: 420px; }
+  .diagram-label {
+    font-size: 11.5px; color: var(--text-dim); text-transform: uppercase;
+    letter-spacing: 1.2px; margin-bottom: 8px; font-weight: 600;
+  }
+
+  .callout {
+    border: 1px solid var(--border-lt); border-radius: 10px;
+    padding: 14px 18px; margin-bottom: 18px; font-size: 14px;
+    background: var(--panel-2);
+  }
+  .callout.risk { border-color: rgba(239,68,68,.45); background: rgba(239,68,68,.06); }
+  .callout .clabel {
+    font-size: 11px; font-weight: 700; letter-spacing: 1px;
+    text-transform: uppercase; margin-bottom: 5px; display: block;
+  }
+  .callout.risk .clabel { color: #f87171; }
+  .callout.tip  { border-color: rgba(16,185,129,.4); background: rgba(16,185,129,.05); }
+  .callout.tip .clabel { color: #34d399; }
+
+  @media (max-width: 900px) {
+    .rail { display: none; }
+    .doc { padding: 30px 20px 70px; }
+    .doc-head { padding: 14px 20px; }
+    .mobile-tabs { display: flex !important; }
+  }
+  .mobile-tabs {
+    display: none; gap: 8px; overflow-x: auto; padding: 12px 16px;
+    border-bottom: 1px solid var(--border); background: var(--panel);
+  }
+  .mobile-tabs .doc-btn { width: auto; white-space: nowrap; margin: 0; }
+  button:focus-visible { outline: 2px solid #38bdf8; outline-offset: 2px; }
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <div class="logo">Doc<span>Forge</span></div>
+  <div class="tag">Output Mockups</div>
+  <div class="env">bundle: <b>corp.fairviewcity.gov</b> · collected 2026-07-06 · modules: AD, GPO, SCCM, Network</div>
+</div>
+
+<div class="mobile-tabs" id="mobileTabs"></div>
+
+<div class="layout">
+  <nav class="rail">
+    <h4>Document Types</h4>
+    <div id="railBtns"></div>
+    <div class="note">
+      Each mockup shows the rendered SSE output for one <code>docType</code>, generated from the same fictional <code>.dfpkg</code> bundle. Export to Word maps headings, tables, and code blocks per the backend's <code>/api/export/docx</code> converter.
+    </div>
+  </nav>
+
+  <main class="viewer">
+    <div class="doc-head" id="docHead">
+      <span class="chip" id="headChip"></span>
+      <span class="fname" id="headFile"></span>
+      <div class="actions">
+        <button class="btn">Copy Markdown</button>
+        <button class="btn primary">Export .docx</button>
+      </div>
+    </div>
+
+    <!-- ═══════════════ 1. NETWORK OVERVIEW ═══════════════ -->
+    <article class="doc" id="doc-network_overview">
+      <div class="doc-title">Network Overview &amp; Architecture</div>
+      <div class="doc-meta">City of Fairview · corp.fairviewcity.gov · Generated 2026-07-07 · DocForge v1.0</div>
+
+      <h2><span class="hn">1.</span>Executive Summary</h2>
+      <p>The Fairview environment is a single-forest, single-domain Active Directory deployment (<code>corp.fairviewcity.gov</code>) spanning <strong>3 physical sites</strong> connected by dedicated fiber and a site-to-site VPN. Two writable domain controllers serve the primary datacenter, with one additional DC at the Operations Center for site resilience. DNS is AD-integrated; DHCP is centralized with failover configured between the two datacenter DCs.</p>
+
+      <h2><span class="hn">2.</span>Network Architecture</h2>
+      <table>
+        <tr><th>Site</th><th>Subnet(s)</th><th>Connectivity</th><th>Role</th></tr>
+        <tr><td><strong>City Hall (HQ)</strong></td><td>10.10.0.0/22, 10.10.8.0/24 (VoIP)</td><td>Core — 10 Gb fiber ring</td><td>Primary datacenter, 2× DC, SCCM primary</td></tr>
+        <tr><td><strong>Operations Center</strong></td><td>10.20.0.0/23</td><td>1 Gb fiber to HQ</td><td>Secondary DC, DP, dispatch systems</td></tr>
+        <tr><td><strong>Corporation Yard</strong></td><td>10.30.0.0/24</td><td>Site-to-site IPsec VPN (200 Mb)</td><td>No local DC — authenticates to HQ</td></tr>
+      </table>
+
+      <h2><span class="hn">3.</span>Domain Controller Deployment</h2>
+      <table>
+        <tr><th>DC</th><th>IP</th><th>Site</th><th>OS</th><th>Roles</th></tr>
+        <tr><td><code>FVDC01</code></td><td>10.10.0.10</td><td>HQ</td><td>Windows Server 2022</td><td>PDCe, RID, Infrastructure · DNS · DHCP (primary)</td></tr>
+        <tr><td><code>FVDC02</code></td><td>10.10.0.11</td><td>HQ</td><td>Windows Server 2022</td><td>Schema, Domain Naming · DNS · DHCP (failover)</td></tr>
+        <tr><td><code>FVDC03</code></td><td>10.20.0.10</td><td>Operations Center</td><td>Windows Server 2019</td><td>GC · DNS</td></tr>
+      </table>
+      <div class="callout risk">
+        <span class="clabel">⚠ Single Point of Failure</span>
+        Corporation Yard has no local DC or RODC. A VPN outage severs authentication for 41 endpoints at that site. See Recommendations.
+      </div>
+
+      <h2><span class="hn">4.</span>DNS &amp; DHCP Infrastructure</h2>
+      <h3>DNS</h3>
+      <ul>
+        <li>AD-integrated zone <code>corp.fairviewcity.gov</code> replicated forest-wide; secure dynamic updates only.</li>
+        <li>Reverse zones for all three site supernets present and current.</li>
+        <li>Forwarders: <code>1.1.1.1</code>, <code>8.8.8.8</code> — <strong>recommend replacing with filtered municipal upstream resolvers</strong>.</li>
+      </ul>
+      <h3>DHCP</h3>
+      <table>
+        <tr><th>Scope</th><th>Range</th><th>Utilization</th><th>Failover</th></tr>
+        <tr><td>HQ-Workstations</td><td>10.10.1.1 – 10.10.3.200</td><td>62%</td><td>Load balance FVDC01/FVDC02</td></tr>
+        <tr><td>HQ-VoIP</td><td>10.10.8.10 – 10.10.8.240</td><td>78%</td><td>Load balance FVDC01/FVDC02</td></tr>
+        <tr><td>OpsCenter</td><td>10.20.0.50 – 10.20.1.220</td><td>44%</td><td>Hot standby → FVDC01</td></tr>
+        <tr><td>CorpYard</td><td>10.30.0.50 – 10.30.0.220</td><td><strong>91%</strong></td><td>None</td></tr>
+      </table>
+
+      <h2><span class="hn">5.</span>Replication Topology</h2>
+      <p>Two site links exist. <code>HQ ↔ OpsCenter</code> replicates every 15 minutes (cost 100); <code>HQ ↔ CorpYard</code> is a member of the default site link at 180 minutes (cost 100) even though no DC resides there — this link can be removed after the site object is cleaned up.</p>
+
+      <h2><span class="hn">6.</span>Network Diagram</h2>
+      <div class="diagram-label">Mermaid · rendered from ```mermaid block</div>
+      <div class="mermaid-wrap">
+        <pre class="mermaid">
+graph TD
+    subgraph HQ["🏛 City Hall — 10.10.0.0/22"]
+        FVDC01["FVDC01\nPDCe · DNS · DHCP"]
+        FVDC02["FVDC02\nSchema · DNS · DHCP"]
+        SCCM["FVSCCM01\nMECM Primary FV1"]
+    end
+    subgraph OPS["🚒 Operations Center — 10.20.0.0/23"]
+        FVDC03["FVDC03\nGC · DNS"]
+        DP1["FVDP01\nDistribution Point"]
+    end
+    subgraph YARD["🚧 Corporation Yard — 10.30.0.0/24"]
+        SW3["Access Layer\n41 endpoints"]
+    end
+    HQ ---|"1 Gb fiber · repl 15 min"| OPS
+    HQ -.-|"IPsec VPN · 200 Mb"| YARD
+    FVDC01 <-->|"AD replication"| FVDC02
+    FVDC01 <-->|"AD replication"| FVDC03
+        </pre>
+      </div>
+
+      <h2><span class="hn">7.</span>Recommendations</h2>
+      <ol>
+        <li><strong>Deploy an RODC or extend the DHCP scope at Corporation Yard</strong> — scope at 91% utilization and no local authentication path (High).</li>
+        <li><strong>Replace public DNS forwarders</strong> with the county's filtered resolvers to align with CJIS guidance (Medium).</li>
+        <li><strong>Upgrade FVDC03 to Server 2022</strong> to match the HQ pair before the 2019 end-of-mainstream date (Medium).</li>
+        <li><strong>Remove CorpYard from the default site link</strong> and rely on subnet-to-site mapping only (Low).</li>
+      </ol>
+    </article>
+
+    <!-- ═══════════════ 2. AD RUNBOOK ═══════════════ -->
+    <article class="doc" id="doc-ad_runbook">
+      <div class="doc-title">Active Directory Administration Runbook</div>
+      <div class="doc-meta">City of Fairview · corp.fairviewcity.gov · Generated 2026-07-07 · DocForge v1.0</div>
+
+      <h2><span class="hn">1.</span>Environment Overview</h2>
+      <table>
+        <tr><th>Attribute</th><th>Value</th></tr>
+        <tr><td>Forest / Domain</td><td><code>corp.fairviewcity.gov</code> (single domain)</td></tr>
+        <tr><td>Functional levels</td><td>Forest: 2016 · Domain: 2016</td></tr>
+        <tr><td>Domain controllers</td><td>FVDC01, FVDC02 (HQ) · FVDC03 (Ops Center)</td></tr>
+        <tr><td>Objects</td><td>612 users (568 enabled) · 214 groups · 843 computers</td></tr>
+        <tr><td>Trusts</td><td>One-way outgoing to <code>county.example.gov</code> (selective auth)</td></tr>
+      </table>
+
+      <h2><span class="hn">2.</span>User Account Management</h2>
+      <h3>SOP: Create a standard user</h3>
+      <ol>
+        <li>Confirm an approved onboarding ticket exists (HR feed or ServiceDesk).</li>
+        <li>Create the account in the department OU — e.g. <code>OU=Public Works,OU=Staff,DC=corp,DC=fairviewcity,DC=gov</code>. <strong>Never create users in the default Users container</strong>; no departmental GPOs apply there.</li>
+        <li>Username standard observed in this environment: <code>first initial + last name</code> (e.g. <code>jrivera</code>); collisions append a digit.</li>
+        <li>Add to the department baseline group (<code>SG-Dept-PublicWorks</code>) — file/print and VPN access flow from group membership only.</li>
+        <li>Set <em>User must change password at next logon</em>; deliver the temporary password out-of-band.</li>
+      </ol>
+      <pre><code># Runbook-standard creation (values from ticket)
+New-ADUser -Name "Jordan Rivera" -SamAccountName jrivera `
+  -UserPrincipalName jrivera@corp.fairviewcity.gov `
+  -Path "OU=Public Works,OU=Staff,DC=corp,DC=fairviewcity,DC=gov" `
+  -AccountPassword (Read-Host -AsSecureString) `
+  -ChangePasswordAtLogon $true -Enabled $true
+Add-ADGroupMember SG-Dept-PublicWorks -Members jrivera</code></pre>
+
+      <h3>SOP: Disable on separation</h3>
+      <ol>
+        <li>Disable the account and move it to <code>OU=Disabled,OU=Staff,…</code> (GPO there strips logon rights).</li>
+        <li>Record ticket # and date in the <code>description</code> attribute.</li>
+        <li>Retain 90 days, then delete. Litigation-hold accounts are flagged by the City Attorney's office before deletion.</li>
+      </ol>
+
+      <h2><span class="hn">3.</span>Group Management</h2>
+      <p>Naming convention in effect (follow it exactly):</p>
+      <table>
+        <tr><th>Prefix</th><th>Type</th><th>Example</th></tr>
+        <tr><td><code>SG-</code></td><td>Security — resource/department access</td><td><code>SG-Dept-Finance</code></td></tr>
+        <tr><td><code>DL-</code></td><td>Distribution</td><td><code>DL-AllStaff</code></td></tr>
+        <tr><td><code>PRV-</code></td><td>Privileged/admin role groups</td><td><code>PRV-ServerAdmins</code></td></tr>
+        <tr><td><code>APP-</code></td><td>Application entitlement</td><td><code>APP-Tyler-Cashiering</code></td></tr>
+      </table>
+
+      <h2><span class="hn">4.</span>Computer Account Management</h2>
+      <ul>
+        <li>Workstations are joined during OSD by the MECM task sequence into <code>OU=Workstations,OU=Endpoints,…</code> — do not pre-stage in the Computers container.</li>
+        <li>Servers are pre-staged manually in <code>OU=Servers</code> with the build ticket number in <code>description</code>.</li>
+      </ul>
+
+      <h2><span class="hn">5.</span>Password Policy Reference</h2>
+      <table>
+        <tr><th>Setting</th><th>Default Domain Policy</th><th>FGPP: PRV-* accounts</th></tr>
+        <tr><td>Minimum length</td><td>14</td><td>16</td></tr>
+        <tr><td>Maximum age</td><td>365 days</td><td>90 days</td></tr>
+        <tr><td>Lockout</td><td>10 attempts / 15 min</td><td>5 attempts / 30 min</td></tr>
+        <tr><td>Complexity</td><td>Enabled</td><td>Enabled</td></tr>
+      </table>
+
+      <h2><span class="hn">6.</span>Domain Controller Maintenance</h2>
+      <h3>Weekly health check</h3>
+      <pre><code>repadmin /replsummary
+dcdiag /e /q
+Get-ADReplicationFailure -Target corp.fairviewcity.gov -Scope Domain</code></pre>
+      <h3>FSMO reference &amp; transfer</h3>
+      <p>All five roles split across the HQ pair (see Network Overview §3). Planned transfer:</p>
+      <pre><code>Move-ADDirectoryServerOperationMasterRole -Identity FVDC02 `
+  -OperationMasterRole PDCEmulator, RIDMaster, InfrastructureMaster</code></pre>
+      <p>Seize (<code>-Force</code>) only after a DC is confirmed unrecoverable — never bring a seized-from DC back online.</p>
+
+      <h2><span class="hn">7.</span>Break-Glass Procedures</h2>
+      <div class="callout risk">
+        <span class="clabel">Emergency Access</span>
+        Two break-glass accounts (<code>BG-EA01</code>, <code>BG-EA02</code>) exist in <code>OU=BreakGlass</code>, excluded from Conditional Access and smartcard enforcement. Credentials are sealed in the City Clerk's safe. Any use pages the IT Manager and requires a post-incident password rotation within 24 hours.
+      </div>
+
+      <h2><span class="hn">8.</span>Appendix: Key Distinguished Names</h2>
+      <pre><code>OU=Staff,DC=corp,DC=fairviewcity,DC=gov
+OU=Endpoints,DC=corp,DC=fairviewcity,DC=gov
+OU=Servers,DC=corp,DC=fairviewcity,DC=gov
+OU=Service Accounts,DC=corp,DC=fairviewcity,DC=gov
+OU=BreakGlass,DC=corp,DC=fairviewcity,DC=gov</code></pre>
+    </article>
+
+    <!-- ═══════════════ 3. DISASTER RECOVERY ═══════════════ -->
+    <article class="doc" id="doc-disaster_recovery">
+      <div class="doc-title">Disaster Recovery Plan — Identity &amp; Core Network Services</div>
+      <div class="doc-meta">City of Fairview · corp.fairviewcity.gov · Generated 2026-07-07 · DocForge v1.0</div>
+
+      <h2><span class="hn">1.</span>Executive Summary</h2>
+      <p>This plan covers recovery of Active Directory, DNS, DHCP, and endpoint management (MECM) for the City of Fairview. The environment's two-DC HQ core with one remote DC supports a <strong>4-hour RTO for authentication services</strong>; the primary risks are a full HQ site loss (all FSMO roles co-located) and the DC-less Corporation Yard site.</p>
+
+      <h2><span class="hn">2.</span>Scope &amp; Objectives</h2>
+      <table>
+        <tr><th>Service</th><th>RTO</th><th>RPO</th><th>Basis</th></tr>
+        <tr><td>Authentication (AD DS)</td><td>4 h</td><td>15 min</td><td>Multi-DC replication interval</td></tr>
+        <tr><td>DNS resolution</td><td>1 h</td><td>15 min</td><td>AD-integrated, 3 servers</td></tr>
+        <tr><td>DHCP leasing</td><td>4 h</td><td>24 h</td><td>Failover pair + nightly DB backup</td></tr>
+        <tr><td>Endpoint mgmt (MECM)</td><td>72 h</td><td>24 h</td><td>Single primary site FV1</td></tr>
+      </table>
+
+      <h2><span class="hn">3.</span>Critical Infrastructure Inventory</h2>
+      <ul>
+        <li><strong>FVDC01 / FVDC02</strong> — HQ; hold all 5 FSMO roles between them; DNS + DHCP failover pair.</li>
+        <li><strong>FVDC03</strong> — Ops Center; GC + DNS; the only identity asset outside HQ.</li>
+        <li><strong>FVSCCM01</strong> — MECM primary (FV1); SQL local; content library 1.8 TB.</li>
+        <li>Backups: nightly system-state of all DCs to <code>\\fvbackup01\adsysstate$</code>, weekly offsite copy.</li>
+      </ul>
+
+      <h2><span class="hn">4.</span>Risk Assessment — Single Points of Failure</h2>
+      <table>
+        <tr><th>Risk</th><th>Severity</th><th>Notes</th></tr>
+        <tr><td>All FSMO roles inside one building (HQ)</td><td><span class="sev high">High</span></td><td>Site loss forces role seizure under pressure</td></tr>
+        <tr><td>Corporation Yard has no local DC</td><td><span class="sev high">High</span></td><td>VPN outage = no auth for 41 endpoints</td></tr>
+        <tr><td>MECM single primary, local SQL</td><td><span class="sev med">Medium</span></td><td>72 h rebuild; endpoints self-sufficient meanwhile</td></tr>
+        <tr><td>DHCP backup restore untested</td><td><span class="sev med">Medium</span></td><td>Last documented test &gt; 12 months ago</td></tr>
+      </table>
+
+      <h2><span class="hn">5.</span>Recovery Procedures</h2>
+      <h3>Scenario A — Single DC failure (FVDC01)</h3>
+      <ol>
+        <li>Confirm outage; verify FVDC02/FVDC03 healthy: <code>dcdiag /e /q</code>.</li>
+        <li>Seize FSMO roles held by the failed DC to FVDC02 (see runbook §6).</li>
+        <li>Point DHCP failover authoritative to survivor; verify scopes serving.</li>
+        <li>Metadata-cleanup the failed DC (<code>ntdsutil</code> or ADUC delete) before rebuilding under the <em>same name only after</em> cleanup replicates.</li>
+      </ol>
+      <h3>Scenario B — Complete HQ site loss</h3>
+      <ol>
+        <li>FVDC03 continues authentication for Ops Center immediately; CorpYard rides the VPN re-route.</li>
+        <li>Seize all five FSMO roles to FVDC03.</li>
+        <li>Restore DHCP database from nightly backup onto FVDC03; recreate failover later.</li>
+        <li>Stand up replacement DCs at the recovery site; MECM restore proceeds per §RTO (72 h).</li>
+      </ol>
+      <h3>Scenario C — AD database corruption (USN rollback / lingering objects)</h3>
+      <ol>
+        <li>Isolate the suspect DC from the network immediately.</li>
+        <li>Do <strong>not</strong> snapshot-revert a DC. Restore from system-state backup using <code>wbadmin start systemstaterecovery</code> in DSRM.</li>
+        <li>Mark restore authoritative only for deliberately deleted objects (<code>ntdsutil "authoritative restore"</code>).</li>
+      </ol>
+      <h3>Scenario D — DNS/DHCP service failure</h3>
+      <p>DNS: any surviving DC serves the zone; repoint DHCP option 006 if a server is lost. DHCP: activate failover partner or restore <code>dhcp.mdb</code> from backup; leases survive up to their duration.</p>
+      <h3>Scenario E — Inter-site connectivity loss</h3>
+      <p>Ops Center: fully self-sufficient (FVDC03). Corporation Yard: cached credentials only — communicate the 10-hour cached-logon window to site supervisors; escalate to carrier per Communication Plan.</p>
+
+      <h2><span class="hn">6.</span>Backup Requirements</h2>
+      <ul>
+        <li>System-state on <strong>≥2 DCs nightly</strong>, retained 30 days, weekly copy offsite — currently met.</li>
+        <li>DHCP database nightly (<code>netsh dhcp server backup</code>) — currently met, <strong>restore untested</strong>.</li>
+        <li>MECM: SQL full nightly + CD.Latest folder; content library excluded (redistributable).</li>
+      </ul>
+
+      <h2><span class="hn">7.</span>Communication Plan (template)</h2>
+      <table>
+        <tr><th>Audience</th><th>Channel</th><th>Owner</th><th>Timing</th></tr>
+        <tr><td>IT staff</td><td>Teams bridge + SMS tree</td><td>On-call engineer</td><td>≤ 15 min</td></tr>
+        <tr><td>Department heads</td><td>Email + phone</td><td>IT Manager</td><td>≤ 1 h</td></tr>
+        <tr><td>City Manager / PIO</td><td>Briefing doc</td><td>IT Manager</td><td>≤ 2 h or per severity</td></tr>
+      </table>
+
+      <h2><span class="hn">8.</span>Testing Schedule</h2>
+      <ul>
+        <li><strong>Quarterly:</strong> FSMO transfer drill (transfer + transfer back), DHCP restore to lab.</li>
+        <li><strong>Semi-annual:</strong> single-DC rebuild in isolated lab from system-state.</li>
+        <li><strong>Annual:</strong> tabletop full-HQ-loss exercise with department stakeholders.</li>
+      </ul>
+
+      <h2><span class="hn">9.</span>Network Recovery Diagram</h2>
+      <div class="diagram-label">Mermaid · failover paths</div>
+      <div class="mermaid-wrap">
+        <pre class="mermaid">
+graph LR
+    HQ["City Hall\nFVDC01 + FVDC02\nAll FSMO"] -- "site loss" --> S["Seize roles"]
+    S --> OPS["Ops Center\nFVDC03 becomes\nauthoritative"]
+    OPS --> DHCP["Restore DHCP DB\nfrom nightly backup"]
+    OPS --> YARD["Corp Yard\ncached logons\n(10 h window)"]
+    DHCP --> REB["Rebuild HQ DCs\nat recovery site"]
+        </pre>
+      </div>
+    </article>
+
+    <!-- ═══════════════ 4. ONBOARDING ═══════════════ -->
+    <article class="doc" id="doc-onboarding">
+      <div class="doc-title">IT Environment Onboarding Guide</div>
+      <div class="doc-meta">City of Fairview · corp.fairviewcity.gov · Generated 2026-07-07 · DocForge v1.0</div>
+
+      <h2><span class="hn">1.</span>Welcome &amp; Environment Overview</h2>
+      <p>Welcome to the Fairview IT team! You're supporting a municipal environment of roughly <strong>612 users and 843 computers</strong> across three sites: City Hall (headquarters and datacenter), the Operations Center, and the Corporation Yard. Everything hangs off a single Active Directory domain, <code>corp.fairviewcity.gov</code>, with Microsoft Endpoint Configuration Manager (site <code>FV1</code>) handling imaging, apps, and patching.</p>
+
+      <h2><span class="hn">2.</span>Architecture at a Glance</h2>
+      <div class="mermaid-wrap">
+        <pre class="mermaid">
+graph TD
+    U["👤 You"] --> AD["Active Directory\ncorp.fairviewcity.gov"]
+    AD --> HQ["City Hall\nFVDC01 · FVDC02"]
+    AD --> OPS["Ops Center\nFVDC03"]
+    HQ --> MECM["MECM FV1\nFVSCCM01"]
+    MECM --> EP["843 endpoints\nWin 11 (81%) · Win 10 (19%)"]
+        </pre>
+      </div>
+
+      <h2><span class="hn">3.</span>Key Infrastructure</h2>
+      <table>
+        <tr><th>Server</th><th>IP</th><th>What it does</th><th>If it's down…</th></tr>
+        <tr><td><code>FVDC01</code></td><td>10.10.0.10</td><td>DC, DNS, primary DHCP, PDC emulator</td><td>Auth continues; check time sync &amp; DHCP failover</td></tr>
+        <tr><td><code>FVDC02</code></td><td>10.10.0.11</td><td>DC, DNS, DHCP failover partner</td><td>Auth continues via FVDC01/03</td></tr>
+        <tr><td><code>FVDC03</code></td><td>10.20.0.10</td><td>Ops Center DC + DNS</td><td>Ops Center auths across the fiber link</td></tr>
+        <tr><td><code>FVSCCM01</code></td><td>10.10.0.30</td><td>MECM primary — imaging, apps, patching</td><td>No new deployments; endpoints keep working</td></tr>
+      </table>
+
+      <h2><span class="hn">4.</span>Active Directory Structure</h2>
+      <ul>
+        <li><code>OU=Staff</code> — users, organized by department (Finance, Public Works, Police-Civilian, …).</li>
+        <li><code>OU=Endpoints\Workstations</code> — machines land here automatically during imaging.</li>
+        <li><code>OU=Servers</code>, <code>OU=Service Accounts</code>, <code>OU=BreakGlass</code> — hands off until trained.</li>
+        <li>Group prefixes tell you what a group is for: <code>SG-</code> access, <code>DL-</code> mail, <code>PRV-</code> admin, <code>APP-</code> application.</li>
+      </ul>
+
+      <h2><span class="hn">5.</span>Group Policy Overview</h2>
+      <p>34 GPOs are in effect. The ones you'll touch most: <strong>FV-Baseline-Workstation</strong> (security baseline, linked at Endpoints), <strong>FV-Drive-Maps</strong> (per-department, item-level targeting on <code>SG-Dept-*</code>), and <strong>FV-BitLocker</strong> (enforcement + AD key escrow). Changes go through the GPO change-management template — never edit a production GPO ad-hoc.</p>
+
+      <h2><span class="hn">6.</span>Network Layout</h2>
+      <p>Three sites, three supernets: <code>10.10.0.0/22</code> HQ · <code>10.20.0.0/23</code> Ops Center · <code>10.30.0.0/24</code> Corp Yard. VoIP rides its own VLAN at HQ (<code>10.10.8.0/24</code>). If a device pulls a <code>169.254</code> address at the Yard, check the VPN tunnel first.</p>
+
+      <h2><span class="hn">7.</span>Common Tasks Quick Reference</h2>
+      <table>
+        <tr><th>Task</th><th>Where / How</th></tr>
+        <tr><td>Password reset</td><td>ADUC or <code>Set-ADAccountPassword</code>; verify identity per HR policy first</td></tr>
+        <tr><td>Reimage a PC</td><td>MECM console → task sequence "Win11 24H2 Standard" · PXE at HQ &amp; Ops</td></tr>
+        <tr><td>Deploy an app</td><td>Existing catalog first (Software Center); new apps need packaging ticket</td></tr>
+        <tr><td>Who has access to a share?</td><td>Trace the <code>SG-</code> group on the ACL — access is group-only, by policy</td></tr>
+        <tr><td>Check patch status</td><td>MECM → Monitoring → Deployments (monthly SUG per collection)</td></tr>
+      </table>
+
+      <h2><span class="hn">8.</span>Security Policies You Must Know</h2>
+      <ul>
+        <li>Passwords: 14 characters minimum, 10-attempt lockout. Admin (<code>PRV-</code>) accounts: 16 chars, 90-day rotation.</li>
+        <li>Separate admin account for elevated work — never daily-drive a <code>PRV-</code> account.</li>
+        <li>BitLocker is enforced on all laptops; recovery keys escrow to AD. Never disable it "temporarily."</li>
+      </ul>
+
+      <h2><span class="hn">9.</span>Escalation &amp; Contacts</h2>
+      <table>
+        <tr><th>Tier</th><th>Who</th><th>When</th></tr>
+        <tr><td>1</td><td>Service Desk (you!)</td><td>All incoming tickets</td></tr>
+        <tr><td>2</td><td>Systems Engineering</td><td>AD, GPO, MECM, server issues</td></tr>
+        <tr><td>3 / On-call</td><td>IT Manager (pager)</td><td>Outages, security incidents, after-hours</td></tr>
+      </table>
+      <div class="callout tip"><span class="clabel">Tip</span> Bookmark this doc and the AD Runbook — they're regenerated from live environment data, so they don't go stale like the old wiki did.</div>
+    </article>
+
+    <!-- ═══════════════ 5. SECURITY AUDIT ═══════════════ -->
+    <article class="doc" id="doc-security_audit">
+      <div class="doc-title">Security Posture Report</div>
+      <div class="doc-meta">City of Fairview · corp.fairviewcity.gov · Generated 2026-07-07 · DocForge v1.0 · Classification: Internal — IT Restricted</div>
+
+      <h2><span class="hn">1.</span>Executive Summary</h2>
+      <p>Overall risk rating: <span class="sev high">High</span></p>
+      <p>The environment shows solid fundamentals — a modern password policy, enforced BitLocker, and 94% patch compliance — but identity hygiene drags the rating down: <strong>47 accounts carry non-expiring passwords</strong>, <strong>62 users and 71 computers are stale beyond 90 days</strong>, and two legacy Server 2012 R2 hosts remain domain-joined past end of support. All findings are remediable with existing tooling; no new spend is required for the P1 items.</p>
+
+      <h2><span class="hn">2.</span>Findings Summary</h2>
+      <table>
+        <tr><th>#</th><th>Finding</th><th>Severity</th><th>Affected</th></tr>
+        <tr><td>F-01</td><td>Service accounts with password-never-expires + Domain Admin nesting</td><td><span class="sev crit">Critical</span></td><td>3 accounts</td></tr>
+        <tr><td>F-02</td><td>Windows Server 2012 R2 hosts (end of support)</td><td><span class="sev high">High</span></td><td>2 servers</td></tr>
+        <tr><td>F-03</td><td>User accounts with non-expiring passwords (non-service)</td><td><span class="sev high">High</span></td><td>44 accounts</td></tr>
+        <tr><td>F-04</td><td>Stale enabled accounts, no logon ≥ 90 days</td><td><span class="sev med">Medium</span></td><td>62 users / 71 computers</td></tr>
+        <tr><td>F-05</td><td>Privileged group sprawl (Domain Admins &gt; 5 members)</td><td><span class="sev med">Medium</span></td><td>9 members</td></tr>
+        <tr><td>F-06</td><td>Unlinked / disabled GPOs awaiting cleanup</td><td><span class="sev low">Low</span></td><td>6 GPOs</td></tr>
+        <tr><td>F-07</td><td>Inbound firewall rules allowing Any-Any on 4 servers</td><td><span class="sev high">High</span></td><td>4 servers</td></tr>
+      </table>
+
+      <h2><span class="hn">3.</span>Detailed Findings</h2>
+      <h3>F-01 · Privileged service accounts <span class="sev crit">Critical</span></h3>
+      <p>Three service accounts (<code>svc-backup</code>, <code>svc-tyler</code>, <code>svc-legacyapp</code>) are members of <strong>Domain Admins</strong> with passwords set to never expire; <code>svc-legacyapp</code>'s password age is <strong>1,847 days</strong>. Any credential theft on a member server escalates directly to domain compromise.</p>
+      <blockquote>Remediate by moving each to least-privilege delegation or gMSA; where the vendor requires local admin, scope it per-server, never at the domain level.</blockquote>
+      <h3>F-02 · Legacy operating systems <span class="sev high">High</span></h3>
+      <p><code>FVAPP03</code> and <code>FVPRINT01</code> run Server 2012 R2, unsupported since Oct 2023 and outside the patch compliance figures below. Both sit on the server VLAN with unrestricted east-west reachability.</p>
+      <h3>F-03 / F-04 · Identity hygiene <span class="sev high">High</span> <span class="sev med">Med</span></h3>
+      <p>44 standard users hold non-expiring passwords (largely a 2019-era exemption group that was never revisited) and 62 enabled users have not logged on in 90+ days — including 11 in the separated-employees pattern that were disabled in HR but not in AD. Stale computer objects (71) inflate the attack surface and MECM licensing counts.</p>
+      <h3>F-07 · Firewall posture <span class="sev high">High</span></h3>
+      <p>Four servers expose inbound Any-Any rules created during past troubleshooting (<code>rule name: "temp - open all"</code> on two of them). These bypass the segmentation model entirely.</p>
+
+      <h2><span class="hn">4.</span>Compliance Gaps</h2>
+      <table>
+        <tr><th>Finding</th><th>NIST 800-53</th><th>CIS Benchmark / Control</th></tr>
+        <tr><td>F-01</td><td>AC-6 (Least Privilege), IA-5</td><td>CIS Control 5.4 — restrict admin privileges</td></tr>
+        <tr><td>F-02</td><td>SI-2 (Flaw Remediation)</td><td>CIS Control 2.2 — supported software only</td></tr>
+        <tr><td>F-03</td><td>IA-5(1) (Password management)</td><td>CIS Win Server 1.1.2 — max password age</td></tr>
+        <tr><td>F-04</td><td>AC-2(3) (Disable inactive accounts)</td><td>CIS Control 5.3 — dormant account disablement</td></tr>
+        <tr><td>F-07</td><td>SC-7 (Boundary protection)</td><td>CIS Control 4.5 — host firewall management</td></tr>
+      </table>
+
+      <h2><span class="hn">5.</span>Prioritized Remediation Roadmap</h2>
+      <table>
+        <tr><th>Phase</th><th>Action</th><th>Effort</th><th>Owner</th></tr>
+        <tr><td><strong>P1 · ≤ 2 weeks</strong></td><td>Strip Domain Admins from the 3 service accounts; rotate all three credentials; delete "temp" firewall rules on 4 servers</td><td>2–3 eng-days</td><td>Systems Eng</td></tr>
+        <tr><td><strong>P2 · ≤ 30 days</strong></td><td>Disable the 62 stale users (report → dept confirmation → disable); revoke non-expiring flag on the 44-account exemption group with staged comms</td><td>4–5 eng-days</td><td>Systems Eng + HR</td></tr>
+        <tr><td><strong>P3 · ≤ 90 days</strong></td><td>Migrate/retire the two 2012 R2 servers; reduce Domain Admins to ≤ 4 with PRV- role groups; purge 71 stale computer objects and 6 dead GPOs</td><td>2–3 eng-weeks</td><td>Systems Eng</td></tr>
+      </table>
+      <div class="callout tip"><span class="clabel">Verification</span> Re-run <code>Collect-ITEnvironment.ps1 -Modules AD,GPO,Network</code> after each phase and regenerate this report — findings F-01 through F-07 are computed from live data, so the deltas are your evidence trail.</div>
+    </article>
+
+    <!-- ═══════════════ 6. GPO DOCUMENTATION ═══════════════ -->
+    <article class="doc" id="doc-gpo_documentation">
+      <div class="doc-title">Group Policy Documentation</div>
+      <div class="doc-meta">City of Fairview · corp.fairviewcity.gov · Generated 2026-07-07 · DocForge v1.0 · 34 GPOs analyzed</div>
+
+      <h2><span class="hn">1.</span>GPO Inventory</h2>
+      <table>
+        <tr><th>GPO</th><th>Status</th><th>Version (AD/Sysvol)</th><th>Linked to</th></tr>
+        <tr><td><strong>Default Domain Policy</strong></td><td><span class="sev info">Enabled</span></td><td>41 / 41</td><td>Domain root</td></tr>
+        <tr><td><strong>FV-Baseline-Workstation</strong></td><td><span class="sev info">Enabled</span></td><td>108 / 108</td><td>OU=Endpoints</td></tr>
+        <tr><td><strong>FV-Baseline-Server</strong></td><td><span class="sev info">Enabled</span></td><td>63 / 63</td><td>OU=Servers</td></tr>
+        <tr><td><strong>FV-BitLocker</strong></td><td><span class="sev info">Enabled</span></td><td>22 / 22</td><td>OU=Endpoints (enforced)</td></tr>
+        <tr><td><strong>FV-Drive-Maps</strong></td><td><span class="sev info">Enabled</span></td><td>87 / 87</td><td>OU=Staff</td></tr>
+        <tr><td><strong>FV-WiFi-8021X</strong></td><td><span class="sev info">Enabled</span></td><td>14 / 14</td><td>OU=Endpoints</td></tr>
+        <tr><td>FV-IE11-Legacy</td><td><span class="sev med">Unlinked</span></td><td>31 / 31</td><td>—</td></tr>
+        <tr><td>Test-Chrome-Policy</td><td><span class="sev med">Disabled</span></td><td>7 / 7</td><td>OU=IT-Test</td></tr>
+        <tr><td colspan="4"><em>…26 additional GPOs in the full inventory (appendix table in generated document)</em></td></tr>
+      </table>
+
+      <h2><span class="hn">2.</span>GPO Linkage Map</h2>
+      <div class="diagram-label">Mermaid · OU tree with links</div>
+      <div class="mermaid-wrap">
+        <pre class="mermaid">
+graph TD
+    ROOT["corp.fairviewcity.gov"] --> DDP["📋 Default Domain Policy"]
+    ROOT --> STAFF["OU: Staff"]
+    ROOT --> EP["OU: Endpoints"]
+    ROOT --> SRV["OU: Servers"]
+    STAFF --> DM["📋 FV-Drive-Maps"]
+    STAFF --> FIN["OU: Finance"] & PW["OU: Public Works"]
+    EP --> BW["📋 FV-Baseline-Workstation"]
+    EP --> BL["📋 FV-BitLocker ⚡enforced"]
+    EP --> WIFI["📋 FV-WiFi-8021X"]
+    SRV --> BS["📋 FV-Baseline-Server"]
+        </pre>
+      </div>
+
+      <h2><span class="hn">3.</span>Policy Categories</h2>
+      <ul>
+        <li><strong>Security (11 GPOs):</strong> baselines, BitLocker, LAPS, audit policy, firewall profiles.</li>
+        <li><strong>Configuration (16 GPOs):</strong> drive maps, printers, Office settings, power, WiFi/802.1X.</li>
+        <li><strong>Software deployment (1 GPO):</strong> legacy MSI assignment for the permit-counter app — <em>candidate for migration to MECM</em>.</li>
+        <li><strong>Unlinked/disabled (6 GPOs):</strong> see §4.</li>
+      </ul>
+
+      <h2><span class="hn">4.</span>Unlinked / Disabled Policies — Cleanup Review</h2>
+      <table>
+        <tr><th>GPO</th><th>State</th><th>Last modified</th><th>Recommendation</th></tr>
+        <tr><td>FV-IE11-Legacy</td><td>Unlinked</td><td>2022-03-14</td><td>Back up &amp; delete — IE retired</td></tr>
+        <tr><td>Test-Chrome-Policy</td><td>Disabled</td><td>2023-08-02</td><td>Delete — superseded by FV-Browser-Baseline</td></tr>
+        <tr><td>Old-VPN-Settings</td><td>Unlinked</td><td>2021-11-30</td><td>Back up &amp; delete — replaced by AOVPN profile</td></tr>
+        <tr><td colspan="4"><em>…3 more listed in the generated document</em></td></tr>
+      </table>
+
+      <h2><span class="hn">5.</span>WMI Filters in Use</h2>
+      <table>
+        <tr><th>Filter</th><th>Query</th><th>Used by</th></tr>
+        <tr><td>Laptops-Only</td><td><code>SELECT * FROM Win32_SystemEnclosure WHERE ChassisTypes=9 OR ChassisTypes=10</code></td><td>FV-BitLocker, FV-Power-Laptop</td></tr>
+        <tr><td>Win11-Only</td><td><code>SELECT * FROM Win32_OperatingSystem WHERE BuildNumber &gt;= 22000</code></td><td>FV-Win11-StartLayout</td></tr>
+      </table>
+
+      <h2><span class="hn">6.</span>Policy Precedence Notes</h2>
+      <div class="callout risk">
+        <span class="clabel">Potential Conflict</span>
+        <code>FV-Baseline-Workstation</code> sets screen-lock timeout to 15 minutes while <code>FV-Kiosk-Lobby</code> (linked deeper at <code>OU=Endpoints\Kiosks</code>) sets 60 minutes. The kiosk value wins by LSDOU precedence — <strong>intentional, but undocumented until now</strong>. FV-BitLocker is enforced, so it cannot be blocked by child-OU inheritance blocking.
+      </div>
+
+      <h2><span class="hn">7.</span>Settings Summary (key configurations found)</h2>
+      <ul>
+        <li>Password/lockout policy — Default Domain Policy (see AD Runbook §5 for values).</li>
+        <li>BitLocker: XTS-AES 256, TPM+PIN on laptops, recovery escrow to AD DS.</li>
+        <li>802.1X wired+wireless: PEAP-MSCHAPv2, machine-or-user auth, root CA pinned.</li>
+        <li>LAPS (Windows LAPS) active on Endpoints and Servers, 30-day rotation.</li>
+      </ul>
+
+      <h2><span class="hn">8.</span>Recommendations</h2>
+      <ol>
+        <li>Execute the §4 cleanup list (back up with <code>Backup-GPO</code> before deletion).</li>
+        <li>Migrate the last GPO-based software install to MECM and retire the GPO.</li>
+        <li>Add a comment field standard: every GPO records ticket # and owner on change.</li>
+      </ol>
+
+      <h2><span class="hn">9.</span>Change Management Template</h2>
+      <pre><code>GPO CHANGE REQUEST
+──────────────────
+GPO name:            FV-________________
+Change ticket:       SD-____
+Requested by / date: ____________ / ____
+Settings changed:    (before → after)
+Test OU applied:     OU=IT-Test — date: ____
+Rollback plan:       Backup-GPO ID: ____
+Approved by:         ____________
+Production link date:____</code></pre>
+    </article>
+  </main>
+</div>
+
+<script>
+  const TYPES = [
+    { id: "network_overview",  label: "Network Overview & Diagram",  color: "#0ea5e9", file: "network_overview_fairview.md" },
+    { id: "ad_runbook",        label: "AD Administration Runbook",   color: "#8b5cf6", file: "ad_runbook_fairview.md" },
+    { id: "disaster_recovery", label: "Disaster Recovery Plan",      color: "#ef4444", file: "disaster_recovery_fairview.md" },
+    { id: "onboarding",        label: "Environment Onboarding Guide",color: "#10b981", file: "onboarding_fairview.md" },
+    { id: "security_audit",    label: "Security Posture Report",     color: "#f59e0b", file: "security_audit_fairview.md" },
+    { id: "gpo_documentation", label: "GPO Documentation",           color: "#6366f1", file: "gpo_documentation_fairview.md" },
+  ];
+
+  mermaid.initialize({
+    startOnLoad: false,
+    theme: "dark",
+    themeVariables: {
+      background: "#0a0f1c", primaryColor: "#1e293b", primaryTextColor: "#e2e8f0",
+      primaryBorderColor: "#334155", lineColor: "#475569", fontSize: "13px",
+      clusterBkg: "#111a2e", clusterBorder: "#27334a"
+    }
+  });
+
+  const rail = document.getElementById("railBtns");
+  const mob  = document.getElementById("mobileTabs");
+
+  function makeBtn(t) {
+    const b = document.createElement("button");
+    b.className = "doc-btn";
+    b.dataset.id = t.id;
+    b.innerHTML = `<span class="dot" style="background:${t.color}"></span><span class="lbl">${t.label}</span>`;
+    b.onclick = () => select(t.id);
+    return b;
+  }
+  TYPES.forEach(t => { rail.appendChild(makeBtn(t)); mob.appendChild(makeBtn(t)); });
+
+  let rendered = new Set();
+  function select(id) {
+    const t = TYPES.find(x => x.id === id);
+    document.querySelectorAll(".doc-btn").forEach(b => b.classList.toggle("active", b.dataset.id === id));
+    document.querySelectorAll(".doc").forEach(d => d.classList.toggle("show", d.id === "doc-" + id));
+    const chip = document.getElementById("headChip");
+    chip.textContent = id;
+    chip.style.background = t.color + "22";
+    chip.style.color = t.color;
+    chip.style.border = `1px solid ${t.color}55`;
+    document.getElementById("headFile").textContent = t.file;
+    if (!rendered.has(id)) {
+      rendered.add(id);
+      mermaid.run({ nodes: document.querySelectorAll(`#doc-${id} .mermaid`) });
+    }
+    window.scrollTo({ top: 0 });
+  }
+  select("network_overview");
+</script>
+</body>
+</html>
