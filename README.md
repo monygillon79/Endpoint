@@ -50,7 +50,7 @@ Diagnostics built alongside an in-house WinForms system-tray support app deploye
 | [Get-PrimaryMonitorDpi.ps1](tray-app-utilities/Get-PrimaryMonitorDpi.md) | P/Invoke probe for true per-monitor DPI — debugs PerMonitorV2 scaling mismatches |
 
 ### DocForge — `docforge/`
-
+<img src="docforge/docs/mockups/network_overview.png" alt="DocForge rendering a Network Overview document" width="920">
 Automated IT documentation: collect an environment, generate polished docs.
 
 | Component | Purpose |
