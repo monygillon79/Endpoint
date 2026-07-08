@@ -1,0 +1,32 @@
+{
+  "name": "docforge-backend",
+  "version": "1.0.0",
+  "description": "DocForge backend – IT documentation automation powered by Claude AI",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "nodemon server.js"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "dependencies": {
+    "cors": "^2.8.5",
+    "docx": "^8.5.0",
+    "express": "^4.19.2",
+    "express-rate-limit": "^7.3.1",
+    "helmet": "^7.1.0",
+    "morgan": "^1.10.0"
+  },
+  "devDependencies": {
+    "nodemon": "^3.1.4"
+  },
+  "keywords": [
+    "docforge",
+    "it-documentation",
+    "active-directory",
+    "claude",
+    "anthropic"
+  ],
+  "license": "MIT"
+}
