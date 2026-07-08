@@ -85,7 +85,7 @@ Full GPO inventory with link targets, a Mermaid OU-tree linkage map, unlinked/di
 
 ---
 
-## ⚡ Quick start
+## Quick start
 
 ### Step 1 — Collect your environment
 
@@ -120,7 +120,7 @@ Drop in your `.dfpkg` (or two — the frontend **auto-merges** split collections
 
 ---
 
-## 🏗️ What's in this directory
+## What's in this directory
 
 | Path | Role |
 |---|---|
