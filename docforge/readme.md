@@ -1,6 +1,6 @@
 <div align="center">
 
-# 🔥 DocForge
+# DocForge
 
 **Turn raw IT environment data into polished, professional documentation — in minutes, not weeks.**
 
@@ -29,7 +29,7 @@ Every IT shop has the same documentation gap: the network diagram is three years
 
 ```mermaid
 graph LR
-    A["🖥️ Collect-ITEnvironment.ps1<br/>AD · GPO · SCCM · Network"] -->|"encrypted .dfpkg bundle"| B["🌐 DocForge Web App<br/>localhost:3001"]
+    A["Collect-ITEnvironment.ps1<br/>AD · GPO · SCCM · Network"] -->|"encrypted .dfpkg bundle"| B["🌐 DocForge Web App<br/>localhost:3001"]
     B -->|"smart-segmented data<br/>+ doc-type prompt"| C["🤖 Claude API"]
     C -->|"streaming Markdown (SSE)"| B
     B -->|"one click"| D["📄 Word (.docx)<br/>export"]
@@ -41,47 +41,47 @@ graph LR
 
 ---
 
-## 📚 The six document types
+## The six document types
 
 One bundle in, six deliverables out. Every screenshot below was generated from the **same fictional environment** (*City of Fairview* — no real data appears in these mockups).
 
-### 🌐 Network Overview & Diagram
+### Network Overview & Diagram
 
 Sites, subnets, DC deployment, DNS/DHCP with **per-scope utilization**, replication topology, and a Mermaid network diagram — plus severity-ranked recommendations for issues found in the data (SPOF sites, public forwarders, OS skew).
 
 <img src="docs/mockups/detail_mermaid_topology.png" alt="Generated Mermaid network topology diagram" width="860">
 
-### 📘 AD Administration Runbook
+### AD Administration Runbook
 
 Operational SOPs that reference the **actual environment** — real OU paths, the observed group naming convention, the real password policy — with ready-to-run PowerShell, FSMO transfer/seize guidance, and break-glass procedures.
 
 <img src="docs/mockups/ad_runbook.png" alt="AD Administration Runbook" width="860">
 
-### 🛡️ Disaster Recovery Plan
+### Disaster Recovery Plan
 
 RTO/RPO targets grounded in the real topology, a risk register of single points of failure **detected in the bundle**, five recovery scenarios as step-by-step procedures, backup gap assessment, and a failover diagram.
 
 <img src="docs/mockups/disaster_recovery.png" alt="Disaster Recovery Plan" width="860">
 
-### 🚀 Environment Onboarding Guide
+### Environment Onboarding Guide
 
 The new-hire document: same data as the runbook, friendlier register. Key infrastructure with an *"If it's down…"* column, a group-prefix decoder, and a common-tasks quick reference.
 
 <img src="docs/mockups/onboarding.png" alt="Environment Onboarding Guide" width="860">
 
-### 🔒 Security Posture Report
+### Security Posture Report
 
 A risk-rated audit deliverable using **actual numbers** from the collector — stale accounts, non-expiring passwords, privileged-group sprawl, legacy OS, firewall exposure — mapped to **NIST 800-53** and **CIS** controls, with a phased remediation roadmap.
 
 <img src="docs/mockups/detail_findings_table.png" alt="Security findings with severity ratings" width="860">
 
-### 📋 GPO Documentation
+### GPO Documentation
 
 Full GPO inventory with link targets, a Mermaid OU-tree linkage map, unlinked/disabled policy cleanup review, WMI filters, and **LSDOU precedence-conflict analysis** that states which policy wins and why.
 
 <img src="docs/mockups/gpo_documentation.png" alt="GPO Documentation" width="860">
 
-> 🔍 **Want more detail?** See **[docs/MOCKUPS.md](docs/MOCKUPS.md)** for a full breakdown of every page, or open **[docs/docforge-output-mockups.html](docs/docforge-output-mockups.html)** locally to click through all six rendered documents interactively.
+> **Want more detail?** See **[docs/MOCKUPS.md](docs/MOCKUPS.md)** for a full breakdown of every page, or open **[docs/docforge-output-mockups.html](docs/docforge-output-mockups.html)** locally to click through all six rendered documents interactively.
 
 ---
 
@@ -130,7 +130,7 @@ Drop in your `.dfpkg` (or two — the frontend **auto-merges** split collections
 | [`Start-DocForge.bat`](Start-DocForge.bat) | One-click Windows launcher |
 | [`docs/`](docs/) | Output mockups: [`MOCKUPS.md`](docs/MOCKUPS.md), screenshots, and the interactive HTML gallery |
 
-## 🔐 Security by design
+## Security by design
 
 - **API key never reaches the browser** — it lives server-side in `.env`; the frontend talks only to the local backend.
 - **Bundles are encrypted at rest** — AES-256-CBC with a PBKDF2-derived key from a `SecureString` passphrase (`-SkipEncryption` exists for development only).
