@@ -41,6 +41,7 @@ All environment-specific values (domains, site codes, hostnames, OU paths) use t
 
 ### Endpoint tray-app utilities — `tray-app-utilities/`
 
+<img src="tray-app-utilities/systray.png" alt="Systray preview" width="920">
 Diagnostics built alongside an in-house WinForms system-tray support app deployed fleet-wide via SCCM/MSI.
 
 | Script | Purpose |
